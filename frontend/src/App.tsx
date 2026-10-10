@@ -72,6 +72,9 @@ export default function App() {
     readPrivacyChoice,
   );
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [mobileTab, setMobileTab] = useState<"plan" | "routes" | "details">(
+    "plan",
+  );
   const nextToastId = useRef(0);
   const controller = useRef<AbortController | null>(null);
   const resultHeading = useRef<HTMLHeadingElement>(null);
@@ -213,6 +216,15 @@ export default function App() {
     setCheckpoint(null);
   };
 
+  const inspectCheckpoint = (point: Checkpoint) => {
+    setCheckpoint({ ...point });
+    setMobileTab("routes");
+    document.querySelector(".map-panel")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
   return (
     <>
       <a className="skip-link" href="#planner">
@@ -258,7 +270,11 @@ export default function App() {
 
         <div className="planner-grid">
           <aside className="sidebar">
-            <section className="trip-panel" aria-labelledby="trip-title">
+            <section
+              id="trip-form"
+              className="trip-panel"
+              aria-labelledby="trip-title"
+            >
               <div className="panel-heading">
                 <h2 id="trip-title">
                   <SlidersHorizontal size={17} /> Plan your trip
@@ -559,7 +575,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="results-heading">
+            <div className="results-heading" id="routes">
               <div>
                 <span className="section-kicker">YOUR OPTIONS</span>
                 <h2 ref={resultHeading} tabIndex={-1}>
@@ -663,7 +679,11 @@ export default function App() {
         </div>
 
         {active && plan && (
-          <section className="detail-section" aria-labelledby="detail-title">
+          <section
+            className="detail-section"
+            id="details"
+            aria-labelledby="detail-title"
+          >
             <div className="detail-overview">
               <span className="section-kicker">A CLOSER LOOK</span>
               <h2 id="detail-title">{active.name}, mile by mile.</h2>
@@ -701,6 +721,51 @@ export default function App() {
                 Select a checkpoint to find it on the map. Rain and snow are
                 hourly accumulations. Risk uses unrounded forecast values.
               </p>
+              <div className="checkpoint-cards">
+                {active.checkpoints.map((point) => (
+                  <button
+                    key={point.id}
+                    type="button"
+                    className={`checkpoint-card ${checkpoint?.id === point.id ? "is-selected" : ""}`}
+                    onClick={() => inspectCheckpoint(point)}
+                    aria-label={`Inspect checkpoint at mile ${number(point.mile, 1)}`}
+                    aria-pressed={checkpoint?.id === point.id}
+                  >
+                    <span className="checkpoint-card-top">
+                      <span>
+                        <MapPin size={16} /> Mile {number(point.mile, 1)}
+                      </span>
+                      <RiskBadge level={point.risk_level} />
+                    </span>
+                    <span className="checkpoint-card-time">
+                      Arrival {timeOnly(point.eta)} ·{" "}
+                      {new Date(point.eta).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span className="checkpoint-card-weather">
+                      <span>
+                        <small>Wind</small>
+                        {weatherValue(point.weather?.wind_mph, "mph", 2)}
+                      </span>
+                      <span>
+                        <small>Rain</small>
+                        {weatherValue(point.weather?.rain_in, "in", 3)}
+                      </span>
+                      <span>
+                        <small>Snow</small>
+                        {weatherValue(point.weather?.snow_in, "in", 3)}
+                      </span>
+                    </span>
+                    {point.reasons.length > 0 && (
+                      <span className="checkpoint-card-reason">
+                        {point.reasons.join(" · ")}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <div className="table-scroll">
                 <table>
                   <thead>
@@ -725,15 +790,7 @@ export default function App() {
                       >
                         <th scope="row">
                           <button
-                            onClick={() => {
-                              setCheckpoint({ ...point });
-                              document
-                                .querySelector(".map-panel")
-                                ?.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "center",
-                                });
-                            }}
+                            onClick={() => inspectCheckpoint(point)}
                             aria-label={`Inspect checkpoint at mile ${number(point.mile, 1)}`}
                             aria-pressed={checkpoint?.id === point.id}
                           >
@@ -799,6 +856,40 @@ export default function App() {
           </button>
         </footer>
       </main>
+
+      <nav className="mobile-tabbar" aria-label="Mobile navigation">
+        <a
+          href="#trip-form"
+          aria-current={mobileTab === "plan" ? "page" : undefined}
+          onClick={() => setMobileTab("plan")}
+        >
+          <SlidersHorizontal size={20} />
+          <span>Plan</span>
+        </a>
+        <a
+          href="#routes"
+          aria-current={mobileTab === "routes" ? "page" : undefined}
+          onClick={() => setMobileTab("routes")}
+        >
+          <RouteIcon size={20} />
+          <span>Routes</span>
+        </a>
+        {active ? (
+          <a
+            href="#details"
+            aria-current={mobileTab === "details" ? "page" : undefined}
+            onClick={() => setMobileTab("details")}
+          >
+            <MapPin size={20} />
+            <span>Details</span>
+          </a>
+        ) : (
+          <span className="mobile-tab-disabled" aria-disabled="true">
+            <MapPin size={20} />
+            <span>Details</span>
+          </span>
+        )}
+      </nav>
 
       <div className="toast-stack" aria-live="polite" aria-atomic="false">
         {toasts.map((toast) => (

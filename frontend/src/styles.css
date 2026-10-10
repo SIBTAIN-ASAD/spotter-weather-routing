@@ -2622,3 +2622,469 @@ body {
     right: 16px;
   }
 }
+
+/* Reading-size pass: keep the dashboard dense without making labels tiny. */
+@media (min-width: 651px) {
+  main {
+    max-width: 1580px;
+  }
+  .site-header nav,
+  .page-heading p,
+  .search-input input,
+  .form-field > input,
+  .input-with-unit input,
+  .primary-button,
+  .route-via,
+  .route-metrics > span:not(.risk-badge),
+  .arrival,
+  .checkpoint-help,
+  .timeline-heading strong,
+  .footer > p {
+    font-size: 14px;
+  }
+  .brand {
+    font-size: 25px;
+  }
+  .page-heading h1 {
+    font-size: clamp(31px, 2.8vw, 41px);
+  }
+  .eyebrow,
+  .section-kicker,
+  .panel-heading > span,
+  .place-field label,
+  .form-field,
+  .spacing-field legend,
+  .forecast-mode legend,
+  .field-hint,
+  .selected-place,
+  .segmented label,
+  .forecast-mode .segmented label,
+  .provider-note,
+  .sample-section p,
+  .sample-section button,
+  .planning-note p,
+  .map-label,
+  .risk-legend > span,
+  .timeline-note,
+  .result-summary,
+  .trip-result-context,
+  .recommendation-copy,
+  .detail-overview > p,
+  .detail-stat,
+  .detail-stat > strong,
+  .risk-mile-values > span,
+  .risk-mile-values strong,
+  .checkpoint-heading > span,
+  .notice,
+  .notice p,
+  .footer > div,
+  .privacy-link {
+    font-size: 12px;
+  }
+  .panel-heading h2 {
+    font-size: 18px;
+  }
+  .search-input,
+  .form-field > input,
+  .input-with-unit {
+    min-height: 48px;
+  }
+  .search-button {
+    height: 40px;
+    width: 36px;
+  }
+  .primary-button {
+    min-height: 49px;
+  }
+  .route-name,
+  .empty-results strong,
+  .checkpoint-heading h3,
+  .exposure-title {
+    font-size: 13px;
+  }
+  .route-metrics > strong {
+    font-size: 20px;
+  }
+  .risk-badge,
+  .recommended,
+  .not-eligible,
+  .results-heading .section-kicker,
+  .timeline-heading .section-kicker,
+  .timeline-ticks,
+  .checkpoint-reason {
+    font-size: 11px;
+  }
+  .detail-overview h2 {
+    font-size: 25px;
+  }
+  table,
+  thead th,
+  tbody td,
+  tbody th,
+  tbody th > button,
+  tbody td > small {
+    font-size: 12px;
+  }
+  .empty-results p,
+  .sample-section strong,
+  .toast p,
+  .cookie-banner-copy p {
+    font-size: 12px;
+  }
+}
+@media (min-width: 1100px) {
+  .planner-grid {
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 27px;
+  }
+  .detail-section {
+    grid-template-columns: 310px minmax(0, 1fr);
+  }
+  .route-card {
+    padding: 17px 16px;
+  }
+  .route-card-top {
+    flex-direction: row;
+  }
+}
+
+.mobile-tabbar {
+  display: none;
+}
+.checkpoint-cards {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  :root {
+    font-size: 15px;
+  }
+  body {
+    background: #eff4f8;
+  }
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    height: 62px;
+    padding: 0 19px;
+    box-shadow: 0 5px 18px #0f354523;
+  }
+  .brand {
+    font-size: 21px;
+  }
+  .site-header nav > button {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  main {
+    max-width: none;
+    padding: 0 0 calc(90px + env(safe-area-inset-bottom, 0px));
+  }
+  .page-heading {
+    margin: 0;
+    padding: 22px 20px 25px;
+    border: 0;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 8px 24px #12465b10;
+  }
+  .page-heading h1 {
+    font-size: 27px;
+    line-height: 1.22;
+  }
+  .page-heading p {
+    font-size: 13px;
+  }
+  .eyebrow {
+    font-size: 11px;
+  }
+  .planner-grid {
+    display: block;
+    padding: 16px 16px 0;
+  }
+  .trip-panel {
+    border-radius: 20px;
+    box-shadow: 0 10px 26px #204b6310;
+  }
+  .panel-heading {
+    padding: 20px 19px 15px;
+  }
+  .panel-heading h2 {
+    font-size: 17px;
+  }
+  .trip-panel form {
+    padding: 0 19px 20px;
+  }
+  .places {
+    display: block;
+  }
+  .place-field {
+    margin-bottom: 9px;
+  }
+  .place-field label,
+  .form-field,
+  .spacing-field legend,
+  .forecast-mode legend {
+    font-size: 13px;
+  }
+  .search-input,
+  .form-field > input,
+  .input-with-unit {
+    min-height: 50px;
+    border-radius: 11px;
+  }
+  .search-input input,
+  .form-field > input,
+  .input-with-unit input {
+    font-size: 16px;
+  }
+  .search-button {
+    width: 43px;
+    height: 43px;
+  }
+  .swap-button {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 36px;
+    height: 36px;
+    margin: -3px auto 5px;
+    border-radius: 10px;
+    transform: rotate(90deg);
+  }
+  .field-hint,
+  .selected-place,
+  .provider-note {
+    font-size: 12px;
+  }
+  .segmented,
+  .forecast-mode .segmented {
+    height: 44px;
+    border-radius: 10px;
+  }
+  .segmented label,
+  .forecast-mode .segmented label {
+    font-size: 12px;
+  }
+  .primary-button {
+    min-height: 52px;
+    border-radius: 11px;
+    font-size: 14px;
+  }
+  .sample-section {
+    display: none;
+  }
+  .planning-note {
+    margin: 12px 0 16px;
+    padding: 12px 14px;
+    border-radius: 13px;
+    background: #e5f1f5;
+  }
+  .planning-note p {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .map-panel {
+    border-radius: 18px;
+    box-shadow: 0 10px 26px #204b6310;
+  }
+  .map-wrap {
+    height: 290px;
+  }
+  .map-label,
+  .timeline-heading strong,
+  .risk-legend > span,
+  .timeline-note,
+  .result-summary,
+  .trip-result-context,
+  .route-via,
+  .route-card .arrival,
+  .recommendation-copy,
+  .notice,
+  .notice p,
+  .detail-overview > p,
+  .detail-stat,
+  .detail-stat > strong,
+  .risk-mile-values > span,
+  .risk-mile-values strong,
+  .checkpoint-help {
+    font-size: 12px;
+  }
+  .timeline {
+    padding: 17px 16px;
+  }
+  .timeline-ticks {
+    font-size: 10px;
+  }
+  .results-heading {
+    margin: 22px 1px 14px;
+  }
+  .results-heading h2 {
+    font-size: 22px;
+  }
+  .route-cards {
+    gap: 12px;
+  }
+  .route-card {
+    border-radius: 15px;
+    padding: 17px;
+  }
+  .route-name {
+    font-size: 14px;
+  }
+  .route-metrics > strong {
+    font-size: 21px;
+  }
+  .route-metrics > span:not(.risk-badge),
+  .risk-badge,
+  .recommended,
+  .not-eligible {
+    font-size: 12px;
+  }
+  .detail-section {
+    margin: 20px 16px 0;
+    padding: 21px 18px;
+    border-radius: 18px;
+    box-shadow: 0 10px 26px #204b6310;
+  }
+  .detail-overview h2 {
+    font-size: 24px;
+  }
+  .checkpoint-heading h3 {
+    font-size: 14px;
+  }
+  .checkpoint-section > .table-scroll {
+    display: none;
+  }
+  .checkpoint-cards {
+    display: grid;
+    gap: 10px;
+  }
+  .checkpoint-card {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #dae8ec;
+    border-radius: 14px;
+    background: #f9fcfd;
+    text-align: left;
+  }
+  .checkpoint-card.is-selected {
+    border-color: #198ba0;
+    background: #eff9fb;
+    box-shadow: 0 0 0 2px #198ba023;
+  }
+  .checkpoint-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .checkpoint-card-top > span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #1f4a5d;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .checkpoint-card-top svg {
+    color: #13849b;
+  }
+  .checkpoint-card-time {
+    color: #607589;
+    font-size: 12px;
+  }
+  .checkpoint-card-weather {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e4edf1;
+  }
+  .checkpoint-card-weather > span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    color: #1e4556;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .checkpoint-card-weather small {
+    color: #718697;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .checkpoint-card-reason {
+    color: #667e8d;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  table,
+  .checkpoint-section thead th,
+  .checkpoint-section td,
+  .checkpoint-section tbody th,
+  .checkpoint-section tbody th > button {
+    font-size: 12px;
+  }
+  .footer {
+    margin: 24px 16px 0;
+    padding: 18px 0 0;
+  }
+  .footer > div,
+  .footer > p,
+  .privacy-link {
+    font-size: 11px;
+  }
+  .mobile-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 7px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: #ffffffee;
+    border-top: 1px solid #d7e4eb;
+    box-shadow: 0 -6px 28px #12354a18;
+    backdrop-filter: blur(14px);
+  }
+  .mobile-tabbar > a,
+  .mobile-tabbar > span {
+    min-height: 54px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 11px;
+    color: #63798a;
+    font-size: 11px;
+    font-weight: 650;
+  }
+  .mobile-tabbar > a[aria-current="page"] {
+    color: #087f91;
+    background: #e8f5f8;
+  }
+  .mobile-tabbar > a:active {
+    background: #eaf3f7;
+  }
+  .mobile-tab-disabled {
+    opacity: 0.45;
+  }
+  #planner,
+  #trip-form,
+  #routes,
+  #details {
+    scroll-margin-top: 75px;
+  }
+  .cookie-banner {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  .toast-stack {
+    top: 74px;
+  }
+}
