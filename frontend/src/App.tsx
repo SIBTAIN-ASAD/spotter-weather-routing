@@ -6,6 +6,7 @@ import {
   Check,
   CloudSun,
   Compass,
+  Cookie,
   FlaskConical,
   Info,
   LoaderCircle,
@@ -18,6 +19,14 @@ import {
   X,
 } from "lucide-react";
 import { createPlan } from "./api";
+import {
+  disableAnalytics,
+  measurementId,
+  readPrivacyChoice,
+  savePrivacyChoice,
+  startAnalytics,
+  type PrivacyChoice,
+} from "./analytics";
 import { MapView } from "./components/MapView";
 import { PlaceSearch } from "./components/PlaceSearch";
 import { Legend, RiskBadge, RiskBar } from "./components/Risk";
@@ -36,6 +45,13 @@ import {
   weatherValue,
 } from "./utils";
 
+type Toast = {
+  id: number;
+  kind: "success" | "error" | "info";
+  title: string;
+  message: string;
+};
+
 export default function App() {
   const [origin, setOrigin] = useState<Place | null>(INITIAL_ORIGIN);
   const [destination, setDestination] = useState<Place | null>(
@@ -49,11 +65,17 @@ export default function App() {
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
   const [hour, setHour] = useState(0);
   const [loading, setLoading] = useState<"live" | "demo" | null>(null);
-  const [error, setError] = useState("");
   const [showRules, setShowRules] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [privacyChoice, setPrivacyChoice] = useState<PrivacyChoice | null>(
+    readPrivacyChoice,
+  );
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const nextToastId = useRef(0);
   const controller = useRef<AbortController | null>(null);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const modal = useRef<HTMLDialogElement>(null);
+  const privacyModal = useRef<HTMLDialogElement>(null);
   const active = plan?.routes.find((route) => route.id === activeId) || null;
   const maxDeparture = localDateInput(new Date(Date.now() + 5 * 86400000));
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -62,11 +84,52 @@ export default function App() {
     if (showRules) modal.current?.showModal();
     else modal.current?.close();
   }, [showRules]);
+  useEffect(() => {
+    if (showPrivacy) privacyModal.current?.showModal();
+    else privacyModal.current?.close();
+  }, [showPrivacy]);
+  useEffect(() => {
+    if (privacyChoice === "analytics") startAnalytics();
+  }, [privacyChoice]);
+  function notify(kind: Toast["kind"], title: string, message: string) {
+    const id = ++nextToastId.current;
+    setToasts((current) => [
+      ...current.slice(-2),
+      { id, kind, title, message },
+    ]);
+    window.setTimeout(
+      () => setToasts((current) => current.filter((item) => item.id !== id)),
+      kind === "error" ? 9000 : 6000,
+    );
+  }
+
+  function reportError(message: string) {
+    notify("error", "We couldn't plan this trip", message);
+  }
+
+  function choosePrivacy(choice: PrivacyChoice) {
+    const previous = privacyChoice;
+    savePrivacyChoice(choice);
+    setPrivacyChoice(choice);
+    setShowPrivacy(false);
+    if (choice === "essential" && previous === "analytics") {
+      disableAnalytics();
+    } else {
+      notify(
+        "info",
+        "Privacy preference saved",
+        choice === "analytics"
+          ? "Anonymous visit analytics are now enabled."
+          : "Only your privacy preference is stored on this device.",
+      );
+    }
+  }
 
   async function planTrip(demo: boolean) {
-    setError("");
     if (!demo && (!origin || !destination)) {
-      setError("Select a matching city for both your origin and destination.");
+      reportError(
+        "Select a matching city for both your origin and destination.",
+      );
       return;
     }
     const when = new Date(departure);
@@ -75,7 +138,7 @@ export default function App() {
       when.getTime() < Date.now() ||
       when.getTime() > Date.now() + 5 * 86400000
     ) {
-      setError("Choose a departure time in the next five days.");
+      reportError("Choose a departure time in the next five days.");
       return;
     }
     const pounds = Number(load);
@@ -85,7 +148,7 @@ export default function App() {
       pounds < 0 ||
       pounds > 80000
     ) {
-      setError("Enter a truck load between 0 and 80,000 lb.");
+      reportError("Enter a truck load between 0 and 80,000 lb.");
       return;
     }
     if (
@@ -95,7 +158,7 @@ export default function App() {
       origin.lat === destination.lat &&
       origin.lon === destination.lon
     ) {
-      setError("Choose a destination different from your origin.");
+      reportError("Choose a destination different from your origin.");
       return;
     }
     controller.current?.abort();
@@ -122,13 +185,20 @@ export default function App() {
         setOrigin(result.origin);
         setDestination(result.destination);
       }
+      notify(
+        "success",
+        demo ? "Sample trip ready" : "Route comparison ready",
+        demo
+          ? "Explore the prepared routes and weather checkpoints below."
+          : `${result.routes.length} route${result.routes.length === 1 ? "" : "s"} checked against the forecast.`,
+      );
       window.setTimeout(
         () => resultHeading.current?.focus({ preventScroll: true }),
         0,
       );
     } catch (cause) {
       if (!abort.signal.aborted)
-        setError(
+        reportError(
           cause instanceof Error
             ? cause.message
             : "The trip could not be planned. Please try again.",
@@ -340,19 +410,6 @@ export default function App() {
           </aside>
 
           <section className="workspace" aria-label="Route comparison">
-            {error && (
-              <div className="notice error-notice" role="alert">
-                <Info size={18} />
-                <div>
-                  <strong>We couldn't plan this trip</strong>
-                  <p>{error}</p>
-                  {plan && <p>The previous result is still shown below.</p>}
-                </div>
-                <button aria-label="Dismiss error" onClick={() => setError("")}>
-                  <X size={16} />
-                </button>
-              </div>
-            )}
             {plan?.mode === "demo" && (
               <div className="notice sample-notice">
                 <FlaskConical size={17} />
@@ -690,8 +747,175 @@ export default function App() {
               · Generated {dateTime(plan.generated_at, true)}
             </p>
           )}
+          <button
+            type="button"
+            className="privacy-link"
+            onClick={() => setShowPrivacy(true)}
+          >
+            <Cookie size={14} /> Privacy & cookies
+          </button>
         </footer>
       </main>
+
+      <div className="toast-stack" aria-live="polite" aria-atomic="false">
+        {toasts.map((toast) => (
+          <div
+            className={`toast toast-${toast.kind}`}
+            key={toast.id}
+            role={toast.kind === "error" ? "alert" : "status"}
+          >
+            <span className="toast-icon" aria-hidden="true">
+              {toast.kind === "success" ? (
+                <Check size={19} />
+              ) : (
+                <Info size={19} />
+              )}
+            </span>
+            <div>
+              <strong>{toast.title}</strong>
+              <p>{toast.message}</p>
+            </div>
+            <button
+              type="button"
+              aria-label={`Dismiss ${toast.title}`}
+              onClick={() =>
+                setToasts((current) =>
+                  current.filter((item) => item.id !== toast.id),
+                )
+              }
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {privacyChoice === null && (
+        <section
+          className="cookie-banner"
+          aria-label="Privacy and cookie notice"
+        >
+          <span className="cookie-banner-icon" aria-hidden="true">
+            <Cookie size={22} />
+          </span>
+          <div className="cookie-banner-copy">
+            <strong>Your privacy, clearly explained.</strong>
+            <p>
+              We store your notice choice on this device.{" "}
+              {measurementId
+                ? "Optional visit analytics run only if you allow them."
+                : "No visitor analytics service is connected yet."}{" "}
+              Maps and fonts may contact their providers.
+            </p>
+          </div>
+          <div className="cookie-banner-actions">
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => setShowPrivacy(true)}
+            >
+              Details
+            </button>
+            {measurementId ? (
+              <>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => choosePrivacy("essential")}
+                >
+                  Essential only
+                </button>
+                <button
+                  type="button"
+                  className="banner-primary"
+                  onClick={() => choosePrivacy("analytics")}
+                >
+                  Allow analytics
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="banner-primary"
+                onClick={() => choosePrivacy("essential")}
+              >
+                Understood
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
+      <dialog
+        ref={privacyModal}
+        className="risk-dialog privacy-dialog"
+        onClose={() => setShowPrivacy(false)}
+        onClick={(event) => {
+          if (event.target === privacyModal.current) setShowPrivacy(false);
+        }}
+        aria-labelledby="privacy-title"
+      >
+        <div className="dialog-heading">
+          <span className="section-kicker">
+            <Cookie size={16} /> PRIVACY & COOKIES
+          </span>
+          <button
+            aria-label="Close privacy details"
+            onClick={() => setShowPrivacy(false)}
+          >
+            <X size={19} />
+          </button>
+        </div>
+        <h2 id="privacy-title">A straightforward privacy note.</h2>
+        <p>
+          RouteCast does not require an account. We use browser storage only to
+          remember your privacy choice. Route inputs are sent to our server to
+          request routes and forecasts. Map tiles and fonts load from external
+          providers, which can receive standard connection information.
+        </p>
+        <div className="privacy-facts">
+          <div>
+            <strong>Necessary storage</strong>
+            <p>
+              Your choice is kept in local storage on this device. It is not a
+              cookie, and clearing browser data removes it.
+            </p>
+          </div>
+          <div>
+            <strong>Visitor analytics</strong>
+            <p>
+              {measurementId
+                ? "If you allow it, Google Analytics measures visits using its own cookies. You can change your choice here at any time."
+                : "No visitor analytics service is connected. We will ask again if one is configured later."}
+            </p>
+          </div>
+          <div>
+            <strong>Routing data</strong>
+            <p>
+              The server uses your selected cities, departure and truck load to
+              calculate a trip. We do not create a personal trip history.
+            </p>
+          </div>
+        </div>
+        <div className="privacy-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => choosePrivacy("essential")}
+          >
+            Essential only
+          </button>
+          {measurementId && (
+            <button
+              type="button"
+              className="banner-primary"
+              onClick={() => choosePrivacy("analytics")}
+            >
+              Allow analytics
+            </button>
+          )}
+        </div>
+      </dialog>
 
       <dialog
         ref={modal}

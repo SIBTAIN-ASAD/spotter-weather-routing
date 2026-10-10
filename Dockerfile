@@ -3,6 +3,7 @@ WORKDIR /build/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
+ARG VITE_GA_MEASUREMENT_ID=
 RUN npm run build
 
 FROM python:3.12-slim AS app

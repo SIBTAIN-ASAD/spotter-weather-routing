@@ -2,6 +2,10 @@
 
 The frontend and Django API run as one service. The repository includes a multi-stage Dockerfile and a Render blueprint. No paid database, API key, storage volume or separate frontend host is required.
 
+### Optional visitor analytics
+
+The deployed assessment has no analytics account connected, so the site does not collect or claim visitor counts. The privacy notice says this directly. If the owner later creates a Google Analytics 4 property, set `VITE_GA_MEASUREMENT_ID=G-...` during the **frontend build** and redeploy. For a local frontend build, place it in `frontend/.env.production`; for a Docker build, pass `--build-arg VITE_GA_MEASUREMENT_ID=G-...`. The tag loads only after a visitor selects **Allow analytics**. Visitors can change that choice under **Privacy & cookies** in the footer. Do not put a measurement ID in `SECRET_KEY` or treat a runtime-only frontend environment variable as enough: Vite embeds it at build time.
+
 ## Render free web service
 
 The assessment instance is live at [routecast-weather-routing.onrender.com](https://routecast-weather-routing.onrender.com/) on Render's free Docker web service. It was connected through **Public Git Repository**, so updates require a manual deploy of the latest commit in Render. This route does not use the Blueprint configuration automatically.

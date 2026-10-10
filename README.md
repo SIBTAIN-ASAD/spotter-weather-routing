@@ -70,6 +70,8 @@ Each interval takes the higher risk of its two checkpoint ends. That is conserva
 
 **Small deployment.** Django serves both the JSON API and built frontend. There is no login, persistent trip store, database, or background worker. That keeps the assessment easy to run and review. Provider responses are cached in process; multiple workers would have separate caches. Forecast points are deduplicated at roughly 110-meter resolution and cached for 15 minutes, routes for one hour, and city searches for one day.
 
+**Privacy and visitor analytics.** The site shows a plain-language privacy notice and stores the visitor's choice in local storage. It does not load an analytics tag by default. If a valid Google Analytics 4 measurement ID is supplied as `VITE_GA_MEASUREMENT_ID` when the frontend is built, the site asks for opt-in before loading the tag. No visitor counts are displayed without a connected analytics account. Changing the measurement ID asks visitors again. Maps and web fonts are supplied by external services.
+
 ## Limits
 
 The planner accepts departures within the next five days, loads from 0 to 80,000 lb, and trips up to 3,500 miles or 48 driving hours. A request is bounded to 600 forecast locations.
