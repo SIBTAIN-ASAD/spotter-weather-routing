@@ -8,7 +8,19 @@ from routing.routes import METERS_PER_MILE, get_routes, normalize_route, sample_
 
 
 def raw_route():
-    return {"distance": 20 * METERS_PER_MILE, "duration": 2400, "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 0], [2, 0]]}, "legs": [{"annotation": {"distance": [10 * METERS_PER_MILE] * 2, "duration": [300, 900]}}]}
+    return {
+        "distance": 20 * METERS_PER_MILE,
+        "duration": 2400,
+        "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 0], [2, 0]]},
+        "legs": [
+            {
+                "annotation": {
+                    "distance": [10 * METERS_PER_MILE] * 2,
+                    "duration": [300, 900],
+                }
+            }
+        ],
+    }
 
 
 class RouteTests(SimpleTestCase):
@@ -24,7 +36,9 @@ class RouteTests(SimpleTestCase):
     def test_final_partial_interval_and_interpolation(self):
         raw = raw_route()
         raw["distance"] = 23 * METERS_PER_MILE
-        points = sample_route(normalize_route(raw), 10, datetime.now(timezone.utc), "route-1")
+        points = sample_route(
+            normalize_route(raw), 10, datetime.now(timezone.utc), "route-1"
+        )
         self.assertEqual([p["mile"] for p in points], [0, 10, 20, 23])
         self.assertAlmostEqual(points[1]["lon"], 10 / 11.5)
 

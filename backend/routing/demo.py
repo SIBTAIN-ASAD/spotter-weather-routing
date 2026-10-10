@@ -1,4 +1,5 @@
 """Recorded road geometry with explicitly synthetic, deterministic weather."""
+
 import json
 import math
 from pathlib import Path
@@ -12,7 +13,9 @@ FIXTURE = Path(__file__).parent / "fixtures" / "chicago-detroit.json"
 def demo_routes():
     payload = json.loads(FIXTURE.read_text())
     routes = [normalize_route(route) for route in payload["routes"]]
-    for route, label in zip(routes, ("Michigan corridor", "Indiana / Ohio corridor", "Fort Wayne corridor")):
+    for route, label in zip(
+        routes, ("Michigan corridor", "Indiana / Ohio corridor", "Fort Wayne corridor")
+    ):
         route["via"] = label
     return payload["origin"], payload["destination"], routes
 
@@ -24,8 +27,18 @@ def demo_forecasts(points, hours):
         for index, hour in enumerate(hours):
             # Two moving weather areas provide stable comparisons and show all
             # risk bands as the corridor time slider moves. These are not forecasts.
-            north = math.exp(-(((lon - (-85.8 + index * 0.028)) / 0.8) ** 2 + ((lat - 42.20) / 0.27) ** 2))
-            south = math.exp(-(((lon - (-84.6 + index * 0.012)) / 0.85) ** 2 + ((lat - 41.55) / 0.25) ** 2))
+            north = math.exp(
+                -(
+                    ((lon - (-85.8 + index * 0.028)) / 0.8) ** 2
+                    + ((lat - 42.20) / 0.27) ** 2
+                )
+            )
+            south = math.exp(
+                -(
+                    ((lon - (-84.6 + index * 0.012)) / 0.85) ** 2
+                    + ((lat - 41.55) / 0.25) ** 2
+                )
+            )
             pulse = 1 + 0.22 * math.sin(index / 7)
             values[iso(hour)] = {
                 "wind_mph": 16 + 46 * north * pulse + 17 * south,

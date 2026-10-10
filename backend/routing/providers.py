@@ -1,4 +1,5 @@
 """Small, bounded HTTP adapters. Upstream failures never become demo data."""
+
 import hashlib
 import json
 import math
@@ -16,11 +17,21 @@ from .validation import number
 
 def request_json(url, params, provider):
     try:
-        response = requests.get(url, params=params, timeout=(4, 20), headers={"User-Agent": "RouteCast-assessment/1.0", "Accept": "application/json"})
+        response = requests.get(
+            url,
+            params=params,
+            timeout=(4, 20),
+            headers={
+                "User-Agent": "RouteCast-assessment/1.0",
+                "Accept": "application/json",
+            },
+        )
         response.raise_for_status()
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
-        raise ProviderError(f"{provider} is unavailable or timed out. Please try again, or choose the labeled demo.") from exc
+        raise ProviderError(
+            f"{provider} is unavailable or timed out. Please try again, or choose the labeled demo."
+        ) from exc
     if not isinstance(payload, (dict, list)):
         raise ProviderError(f"{provider} returned an unexpected response.")
     return payload
@@ -31,7 +42,11 @@ def geocode(query):
     stored = cache.get(key)
     if stored is not None:
         return stored
-    payload = request_json(f"{settings.GEOCODING_BASE_URL}/v1/search", {"name": query, "count": 6, "language": "en", "format": "json"}, "Place search")
+    payload = request_json(
+        f"{settings.GEOCODING_BASE_URL}/v1/search",
+        {"name": query, "count": 6, "language": "en", "format": "json"},
+        "Place search",
+    )
     if not isinstance(payload, dict) or payload.get("error"):
         raise ProviderError("Place search could not complete this query.")
     places = []
@@ -42,7 +57,12 @@ def geocode(query):
         if not isinstance(place, dict) or not isinstance(place.get("name"), str):
             continue
         lat, lon = place.get("latitude"), place.get("longitude")
-        if not number(lat) or not number(lon) or not -90 <= lat <= 90 or not -180 <= lon <= 180:
+        if (
+            not number(lat)
+            or not number(lon)
+            or not -90 <= lat <= 90
+            or not -180 <= lon <= 180
+        ):
             continue
         labels = (place.get("name"), place.get("admin1"), place.get("country"))
         if any(label is not None and not isinstance(label, str) for label in labels):
@@ -54,14 +74,33 @@ def geocode(query):
 
 
 def osrm_route(coordinates, alternatives=True):
-    params = {"alternatives": "3" if alternatives else "false", "overview": "full", "geometries": "geojson", "annotations": "distance,duration", "steps": "false"}
-    url = f"{settings.OSRM_BASE_URL}/route/v1/driving/" + ";".join(f"{lon:.6f},{lat:.6f}" for lon, lat in coordinates)
-    key = "routes:" + hashlib.sha256((url + json.dumps(params, sort_keys=True)).encode()).hexdigest()
+    params = {
+        "alternatives": "3" if alternatives else "false",
+        "overview": "full",
+        "geometries": "geojson",
+        "annotations": "distance,duration",
+        "steps": "false",
+    }
+    url = f"{settings.OSRM_BASE_URL}/route/v1/driving/" + ";".join(
+        f"{lon:.6f},{lat:.6f}" for lon, lat in coordinates
+    )
+    key = (
+        "routes:"
+        + hashlib.sha256(
+            (url + json.dumps(params, sort_keys=True)).encode()
+        ).hexdigest()
+    )
     payload = cache.get(key)
     if payload is None:
         payload = request_json(url, params, "Routing service")
-        if not isinstance(payload, dict) or payload.get("code") != "Ok" or not payload.get("routes"):
-            raise ProviderError("No drivable route was found between those places. Try nearby cities or different endpoints.")
+        if (
+            not isinstance(payload, dict)
+            or payload.get("code") != "Ok"
+            or not payload.get("routes")
+        ):
+            raise ProviderError(
+                "No drivable route was found between those places. Try nearby cities or different endpoints."
+            )
         cache.set(key, payload, 60 * 60)
     return payload["routes"]
 
@@ -99,7 +138,11 @@ def parse_forecast(payload):
     for i, time in enumerate(times):
         try:
             timestamp = datetime.fromisoformat(time.replace("Z", "+00:00"))
-            timestamp = timestamp.replace(tzinfo=timezone.utc) if timestamp.tzinfo is None else timestamp.astimezone(timezone.utc)
+            timestamp = (
+                timestamp.replace(tzinfo=timezone.utc)
+                if timestamp.tzinfo is None
+                else timestamp.astimezone(timezone.utc)
+            )
             key = timestamp.isoformat().replace("+00:00", "Z")
         except (TypeError, ValueError, AttributeError):
             raise ProviderError("Weather service returned invalid hourly timestamps.")
@@ -109,8 +152,17 @@ def parse_forecast(payload):
             item = values[i] if isinstance(values, list) and i < len(values) else None
             return _quantity(item, units.get(name), kind)
 
-        wind, rain, showers, snow = value("wind_speed_10m", "wind"), value("rain"), value("showers"), value("snowfall")
-        result[key] = {"wind_mph": wind, "rain_in": None if rain is None or showers is None else rain + showers, "snow_in": snow}
+        wind, rain, showers, snow = (
+            value("wind_speed_10m", "wind"),
+            value("rain"),
+            value("showers"),
+            value("snowfall"),
+        )
+        result[key] = {
+            "wind_mph": wind,
+            "rain_in": None if rain is None or showers is None else rain + showers,
+            "snow_in": snow,
+        }
     return result
 
 
@@ -123,18 +175,31 @@ def forecasts(points, now=None):
     missing = [point for point in unique if point not in result]
 
     def fetch_batch(batch):
-        payload = request_json(f"{settings.WEATHER_BASE_URL}/v1/forecast", {
-            "latitude": ",".join(str(p[0]) for p in batch), "longitude": ",".join(str(p[1]) for p in batch),
-            "hourly": "wind_speed_10m,rain,showers,snowfall", "wind_speed_unit": "mph", "precipitation_unit": "inch", "timezone": "GMT", "forecast_days": 9,
-        }, "Weather service")
+        payload = request_json(
+            f"{settings.WEATHER_BASE_URL}/v1/forecast",
+            {
+                "latitude": ",".join(str(p[0]) for p in batch),
+                "longitude": ",".join(str(p[1]) for p in batch),
+                "hourly": "wind_speed_10m,rain,showers,snowfall",
+                "wind_speed_unit": "mph",
+                "precipitation_unit": "inch",
+                "timezone": "GMT",
+                "forecast_days": 9,
+            },
+            "Weather service",
+        )
         items = payload if isinstance(payload, list) else [payload]
         if len(items) != len(batch):
-            raise ProviderError("Weather service returned an incomplete forecast batch.")
+            raise ProviderError(
+                "Weather service returned an incomplete forecast batch."
+            )
         return {point: parse_forecast(item) for point, item in zip(batch, items)}
 
-    batches = [missing[i:i + 40] for i in range(0, len(missing), 40)]
+    batches = [missing[i : i + 40] for i in range(0, len(missing), 40)]
     with ThreadPoolExecutor(max_workers=3) as executor:
         for fetched in executor.map(fetch_batch, batches):
             result.update(fetched)
-            cache.set_many({keys[point]: data for point, data in fetched.items()}, 15 * 60)
+            cache.set_many(
+                {keys[point]: data for point, data in fetched.items()}, 15 * 60
+            )
     return result

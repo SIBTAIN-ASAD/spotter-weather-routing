@@ -5,7 +5,11 @@ from .errors import ValidationError
 
 def number(value):
     try:
-        return isinstance(value, (float, int)) and not isinstance(value, bool) and math.isfinite(value)
+        return (
+            isinstance(value, (float, int))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+        )
     except OverflowError:
         return False
 
@@ -16,9 +20,18 @@ def validate_plan(data, now=None):
     fields = {}
     for key in ("origin", "destination"):
         place = data.get(key)
-        if not isinstance(place, dict) or not isinstance(place.get("name"), str) or not 1 <= len(place["name"].strip()) <= 200:
+        if (
+            not isinstance(place, dict)
+            or not isinstance(place.get("name"), str)
+            or not 1 <= len(place["name"].strip()) <= 200
+        ):
             fields[key] = "Choose a named place from search results."
-        elif not number(place.get("lat")) or not number(place.get("lon")) or not -90 <= place["lat"] <= 90 or not -180 <= place["lon"] <= 180:
+        elif (
+            not number(place.get("lat"))
+            or not number(place.get("lon"))
+            or not -90 <= place["lat"] <= 90
+            or not -180 <= place["lon"] <= 180
+        ):
             fields[key] = "Latitude and longitude must be valid coordinates."
     now = now or datetime.now(timezone.utc)
     departure = None
@@ -43,8 +56,22 @@ def validate_plan(data, now=None):
     demo = data.get("demo", False)
     if not isinstance(demo, bool):
         fields["demo"] = "Demo must be true or false."
-    if not fields and abs(data["origin"]["lat"] - data["destination"]["lat"]) + abs(data["origin"]["lon"] - data["destination"]["lon"]) < 0.001:
+    if (
+        not fields
+        and abs(data["origin"]["lat"] - data["destination"]["lat"])
+        + abs(data["origin"]["lon"] - data["destination"]["lon"])
+        < 0.001
+    ):
         fields["destination"] = "Choose a destination different from the origin."
     if fields:
-        raise ValidationError("Check the highlighted trip details.", fields)
-    return {"origin": {key: data["origin"][key] for key in ("name", "lat", "lon")}, "destination": {key: data["destination"][key] for key in ("name", "lat", "lon")}, "departure": departure, "load_lbs": load, "spacing_miles": int(spacing), "demo": demo}
+        raise ValidationError("Check the trip details and try again.", fields)
+    return {
+        "origin": {key: data["origin"][key] for key in ("name", "lat", "lon")},
+        "destination": {
+            key: data["destination"][key] for key in ("name", "lat", "lon")
+        },
+        "departure": departure,
+        "load_lbs": load,
+        "spacing_miles": int(spacing),
+        "demo": demo,
+    }
