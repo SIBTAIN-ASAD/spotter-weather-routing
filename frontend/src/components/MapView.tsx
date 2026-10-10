@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
-import { Layers2, Maximize2, Route as RouteIcon } from "lucide-react";
-import type { Checkpoint, CorridorPoint, Plan } from "../types";
+import {
+  Layers2,
+  MapPin,
+  Maximize2,
+  Minimize2,
+  Focus,
+  Route as RouteIcon,
+  X,
+} from "lucide-react";
+import type { Checkpoint, CorridorPoint, Place, Plan, Route } from "../types";
 import {
   city,
   dateTime,
@@ -129,13 +137,33 @@ export function MapView({
   const routes = useRef<L.LayerGroup | null>(null);
   const weather = useRef<WeatherCanvas | null>(null);
   const popupMarkers = useRef(new Map<string, L.Marker>());
+  const placeMarkers = useRef(new Map<string, L.Marker>());
   const fittedPlan = useRef<Plan | null>(null);
   const [showWeather, setShowWeather] = useState(true);
+  const [showCheckpoints, setShowCheckpoints] = useState(true);
+  const [showAlternatives, setShowAlternatives] = useState(true);
+  const [openPanel, setOpenPanel] = useState<
+    "routes" | "points" | "layers" | null
+  >(null);
+  const [expanded, setExpanded] = useState(false);
   const [tilesFailed, setTilesFailed] = useState(false);
   const selectRef = useRef(onSelect);
   selectRef.current = onSelect;
   const checkpointRef = useRef(onCheckpoint);
   checkpointRef.current = onCheckpoint;
+  useEffect(() => {
+    if (!expanded) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [expanded]);
   useEffect(() => {
     if (!element.current) return;
     const instance = L.map(element.current, {
@@ -178,11 +206,13 @@ export function MapView({
     const layers = routes.current;
     layers.clearLayers();
     popupMarkers.current.clear();
+    placeMarkers.current.clear();
     if (!plan) return;
     const ordered = [...plan.routes].sort(
       (a, b) => Number(a.id === activeId) - Number(b.id === activeId),
     );
     for (const route of ordered) {
+      if (!showAlternatives && route.id !== activeId) continue;
       const index = plan.routes.findIndex(
         (candidate) => candidate.id === route.id,
       );
@@ -208,7 +238,7 @@ export function MapView({
         { className: "route-tooltip" },
       );
       line.on("click", () => selectRef.current(route.id));
-      if (active)
+      if (active && showCheckpoints)
         for (const point of route.checkpoints) {
           const color = RISK[point.risk_level].color;
           const marker = L.marker([point.lat, point.lon], {
@@ -234,7 +264,7 @@ export function MapView({
       [plan.origin, "A"],
       [plan.destination, "B"],
     ] as const) {
-      L.marker([place.lat, place.lon], {
+      const marker = L.marker([place.lat, place.lon], {
         icon: L.divIcon({
           className: "place-marker",
           html: `<span>${label}</span>`,
@@ -244,8 +274,9 @@ export function MapView({
         title: place.name,
         zIndexOffset: 100,
       })
-        .bindTooltip(textLabel(place.name))
+        .bindPopup(textLabel(place.name))
         .addTo(layers);
+      placeMarkers.current.set(label, marker);
     }
     if (fittedPlan.current !== plan && plan.routes.length) {
       const bounds = L.latLngBounds(
@@ -259,15 +290,15 @@ export function MapView({
       instance.fitBounds(bounds, { padding: [55, 65], maxZoom: 10 });
       fittedPlan.current = plan;
     }
-  }, [plan, activeId]);
+  }, [plan, activeId, showCheckpoints, showAlternatives]);
   useEffect(() => {
     weather.current?.update(plan?.corridor.points || [], hour, showWeather);
   }, [plan, hour, showWeather]);
   useEffect(() => {
-    if (!checkpoint) return;
+    if (!checkpoint || !showCheckpoints) return;
     const marker = popupMarkers.current.get(checkpoint.id);
     marker?.openPopup();
-  }, [checkpoint, activeId]);
+  }, [checkpoint, activeId, showCheckpoints]);
   function fitRoutes() {
     if (plan?.routes.length)
       map.current?.fitBounds(
@@ -282,8 +313,43 @@ export function MapView({
         { padding: [55, 65], maxZoom: 10 },
       );
   }
+  function focusRoute(route: Route) {
+    selectRef.current(route.id);
+    map.current?.fitBounds(
+      L.latLngBounds(
+        route.geometry.coordinates.map(([lon, lat]): L.LatLngTuple => [
+          lat,
+          lon,
+        ]),
+      ),
+      { padding: [55, 65], maxZoom: 10 },
+    );
+    setOpenPanel(null);
+  }
+  function focusCheckpoint(point: Checkpoint) {
+    if (!showCheckpoints) setShowCheckpoints(true);
+    checkpointRef.current(point);
+    if (showCheckpoints) popupMarkers.current.get(point.id)?.openPopup();
+    map.current?.flyTo(
+      [point.lat, point.lon],
+      Math.max(map.current.getZoom(), 9),
+    );
+    setOpenPanel(null);
+  }
+  function focusPlace(place: Place, label: string) {
+    map.current?.flyTo(
+      [place.lat, place.lon],
+      Math.max(map.current.getZoom(), 9),
+    );
+    placeMarkers.current.get(label)?.openPopup();
+    setOpenPanel(null);
+  }
+  function togglePanel(panel: "routes" | "points" | "layers") {
+    setOpenPanel((current) => (current === panel ? null : panel));
+  }
+  const activeRoute = plan?.routes.find((route) => route.id === activeId);
   return (
-    <div className="map-wrap">
+    <div className={`map-wrap ${expanded ? "is-expanded" : ""}`}>
       <div
         ref={element}
         className="map"
@@ -299,25 +365,189 @@ export function MapView({
         <div className="map-actions">
           <button
             type="button"
-            className={showWeather ? "active" : ""}
-            disabled={!plan}
-            aria-pressed={showWeather}
-            onClick={() => setShowWeather(!showWeather)}
-            title="Toggle weather overlay"
-          >
-            <Layers2 size={16} />
-            <span>Weather</span>
-          </button>
-          <button
-            type="button"
             disabled={!plan}
             onClick={fitRoutes}
             aria-label="Fit all routes on the map"
+            title="Show full trip"
           >
-            <Maximize2 size={16} />
+            <Focus size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-label={expanded ? "Close large map" : "Open large map"}
+            title={expanded ? "Close large map" : "Open large map"}
+          >
+            {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
       </div>
+      {plan && (
+        <>
+          <div
+            className="map-explore-actions"
+            role="group"
+            aria-label="Explore map"
+          >
+            <button
+              type="button"
+              className={openPanel === "routes" ? "is-active" : ""}
+              aria-expanded={openPanel === "routes"}
+              onClick={() => togglePanel("routes")}
+            >
+              <RouteIcon size={15} /> Routes
+            </button>
+            <button
+              type="button"
+              className={openPanel === "points" ? "is-active" : ""}
+              aria-expanded={openPanel === "points"}
+              onClick={() => togglePanel("points")}
+            >
+              <MapPin size={15} /> Points
+            </button>
+            <button
+              type="button"
+              className={openPanel === "layers" ? "is-active" : ""}
+              aria-expanded={openPanel === "layers"}
+              onClick={() => togglePanel("layers")}
+            >
+              <Layers2 size={15} /> Layers
+            </button>
+          </div>
+          {openPanel && (
+            <div
+              className="map-explore-panel"
+              aria-label={`${openPanel} on map`}
+            >
+              <div className="map-explore-heading">
+                <strong>
+                  {openPanel === "routes"
+                    ? "Choose a route"
+                    : openPanel === "points"
+                      ? "Explore points"
+                      : "Map layers"}
+                </strong>
+                <button
+                  type="button"
+                  onClick={() => setOpenPanel(null)}
+                  aria-label="Close map options"
+                >
+                  <X size={17} />
+                </button>
+              </div>
+              {openPanel === "routes" && (
+                <div className="map-route-options">
+                  {plan.routes.map((route, index) => (
+                    <button
+                      key={route.id}
+                      type="button"
+                      className={route.id === activeId ? "is-selected" : ""}
+                      aria-pressed={route.id === activeId}
+                      onClick={() => focusRoute(route)}
+                    >
+                      <i
+                        style={{
+                          background: ROUTE_COLORS[index % ROUTE_COLORS.length],
+                        }}
+                      />
+                      <span>
+                        <strong>{route.name}</strong>
+                        <small>{route.via || "Road route"}</small>
+                      </span>
+                      <span className="map-route-option-meta">
+                        <strong>{duration(route.duration_minutes)}</strong>
+                        <small>{number(route.distance_miles)} mi</small>
+                        <small>
+                          {route.eligible
+                            ? `${RISK[route.risk_level].label} risk`
+                            : "Not eligible"}
+                        </small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {openPanel === "points" && (
+                <div className="map-point-options">
+                  <button
+                    type="button"
+                    onClick={() => focusPlace(plan.origin, "A")}
+                  >
+                    <b>A</b> <span>Start · {city(plan.origin)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => focusPlace(plan.destination, "B")}
+                  >
+                    <b>B</b> <span>Finish · {city(plan.destination)}</span>
+                  </button>
+                  {activeRoute && (
+                    <>
+                      <p>Weather along {activeRoute.name}</p>
+                      {activeRoute.checkpoints.map((point) => (
+                        <button
+                          key={point.id}
+                          type="button"
+                          onClick={() => focusCheckpoint(point)}
+                        >
+                          <i
+                            style={{ background: RISK[point.risk_level].color }}
+                          />
+                          <span>
+                            Mile {number(point.mile, 1)} ·{" "}
+                            {RISK[point.risk_level].label} risk
+                          </span>
+                          <small>{dateTime(point.eta)}</small>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              {openPanel === "layers" && (
+                <div className="map-layer-options">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={showAlternatives}
+                      onChange={(event) =>
+                        setShowAlternatives(event.target.checked)
+                      }
+                    />
+                    <span>
+                      Other routes<small>Compare every road option</small>
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={showCheckpoints}
+                      onChange={(event) =>
+                        setShowCheckpoints(event.target.checked)
+                      }
+                    />
+                    <span>
+                      Weather points
+                      <small>Arrival-time dots on the chosen route</small>
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={showWeather}
+                      onChange={(event) => setShowWeather(event.target.checked)}
+                    />
+                    <span>
+                      Weather shading
+                      <small>Corridor forecast at the selected hour</small>
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
       {!plan && (
         <div className="map-empty">
           <span className="empty-map-icon">
@@ -332,12 +562,6 @@ export function MapView({
           <span className="empty-map-detail">
             Arrival-time forecasts · Load-aware risk
           </span>
-        </div>
-      )}
-      {plan && (
-        <div className="map-note">
-          <i />
-          Dots: weather at arrival<span>·</span>Shading: selected forecast hour
         </div>
       )}
       {tilesFailed && (

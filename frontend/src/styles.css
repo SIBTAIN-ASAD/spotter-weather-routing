@@ -3088,3 +3088,207 @@ body {
     top: 74px;
   }
 }
+
+/* Map controls keep route comparison and checkpoint exploration on the map. */
+.map-explore-actions {
+  position: absolute;
+  top: 57px;
+  left: 16px;
+  z-index: 480;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.map-explore-actions button,
+.map-explore-heading button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 35px;
+  padding: 0 12px;
+  border: 1px solid #dce7e8;
+  border-radius: 9px;
+  background: #fffffff5;
+  color: #294d5a;
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 3px 12px #16364718;
+}
+.map-explore-actions button.is-active {
+  border-color: #11889a;
+  background: #e5f5f8;
+  color: #096d81;
+}
+.map-explore-panel {
+  position: absolute;
+  z-index: 500;
+  top: 101px;
+  left: 16px;
+  width: min(324px, calc(100% - 32px));
+  max-height: calc(100% - 122px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+  border: 1px solid #dbe8ea;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 14px 42px #123c5260;
+}
+.map-explore-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 3px 8px;
+  color: #204959;
+  font-size: 14px;
+}
+.map-explore-heading button {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  box-shadow: none;
+}
+.map-route-options,
+.map-point-options,
+.map-layer-options {
+  display: grid;
+  gap: 6px;
+}
+.map-route-options > button,
+.map-point-options > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 9px;
+  border: 1px solid #e2eaed;
+  border-radius: 10px;
+  background: #f8fbfc;
+  color: #294b59;
+  text-align: left;
+  font-size: 12px;
+}
+.map-route-options > button.is-selected {
+  border-color: #15879a;
+  background: #edf9fb;
+}
+.map-route-options i,
+.map-point-options i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.map-route-options > button > span:first-of-type {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.map-route-options small,
+.map-point-options small,
+.map-layer-options small {
+  display: block;
+  color: #6b8390;
+  font-size: 11px;
+  font-weight: 450;
+}
+.map-route-option-meta {
+  display: grid;
+  flex: none;
+  gap: 2px;
+  text-align: right;
+}
+.map-point-options b {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 23px;
+  height: 23px;
+  border-radius: 7px;
+  background: #244d5c;
+  color: #fff;
+  font-size: 11px;
+}
+.map-point-options > p {
+  padding: 9px 3px 2px;
+  color: #6b8390;
+  font-size: 11px;
+  font-weight: 700;
+}
+.map-point-options > button > span {
+  flex: 1;
+}
+.map-layer-options label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 54px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: #f8fbfc;
+  color: #294b59;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.map-layer-options input {
+  width: 17px;
+  height: 17px;
+  accent-color: #087f91;
+}
+.map-wrap.is-expanded {
+  position: fixed;
+  z-index: 1040;
+  inset: 16px;
+  height: auto;
+  border: 1px solid #c9dfe6;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 100vmax #082c41b8,
+    0 24px 70px #082c4180;
+}
+.map-wrap.is-expanded .map-explore-panel {
+  max-height: min(480px, calc(100% - 125px));
+}
+.map-wrap.is-expanded .map-explore-actions button {
+  min-height: 40px;
+}
+@media (max-width: 650px) {
+  .map-wrap {
+    height: 410px;
+  }
+  .map-topline {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+  .map-actions button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .map-explore-actions {
+    top: 59px;
+    left: 12px;
+    right: 12px;
+  }
+  .map-explore-actions button {
+    min-height: 38px;
+    padding: 0 10px;
+  }
+  .map-explore-panel {
+    top: 108px;
+    left: 12px;
+    width: calc(100% - 24px);
+    max-height: calc(100% - 135px);
+  }
+  .map-wrap.is-expanded {
+    inset: 62px 0 calc(70px + env(safe-area-inset-bottom, 0px));
+    z-index: 1040;
+    border-radius: 0;
+  }
+}
