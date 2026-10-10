@@ -4,6 +4,8 @@ A weather-aware route planner built with React, TypeScript and Django. Enter a t
 
 The useful distinction is **weather when the truck gets there**, rather than weather everywhere at departure. The route comparison uses checkpoint arrival times; the map's forecast slider lets you separately inspect how the surrounding corridor changes over the following 48 hours.
 
+**Hosted demo:** [routecast-weather-routing.onrender.com](https://routecast-weather-routing.onrender.com/). The sample trip is reliable and explicitly labeled as synthetic. Live trip planning uses public routing and forecast providers; Open-Meteo has returned HTTP 429 to this free host, so live trips may currently show a provider error. The same live flow passed in local browser verification.
+
 ## Run it
 
 Requires Python 3.12+ and Node.js 22.12+.

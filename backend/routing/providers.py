@@ -32,7 +32,17 @@ def request_json(url, params, provider):
         response.raise_for_status()
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
-        logger.warning("%s request failed: %s", provider, exc)
+        status = (
+            exc.response.status_code
+            if isinstance(exc, requests.HTTPError) and exc.response is not None
+            else None
+        )
+        logger.warning(
+            "%s request failed: %s%s",
+            provider,
+            type(exc).__name__,
+            f" (HTTP {status})" if status else "",
+        )
         raise ProviderError(
             f"{provider} is unavailable or timed out. Please try again, or choose the labeled demo."
         ) from exc

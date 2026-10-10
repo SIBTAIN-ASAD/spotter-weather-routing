@@ -4,6 +4,12 @@ The frontend and Django API run as one service. The repository includes a multi-
 
 ## Render free web service
 
+The assessment instance is live at [routecast-weather-routing.onrender.com](https://routecast-weather-routing.onrender.com/) on Render's free Docker web service. It was connected through **Public Git Repository**, so updates require a manual deploy of the latest commit in Render. This route does not use the Blueprint configuration automatically.
+
+The app, sample trip, assets, and `/api/health/` were verified publicly on 2026-10-10. The free host's shared outbound IP received HTTP 429 from Open-Meteo during live trip checks, so live weather planning is not currently reliable on this instance. The UI reports that failure and does not substitute sample weather. Live planning passed in the local browser environment.
+
+For a fresh deployment using the checked-in Blueprint:
+
 1. Push the repository to GitHub.
 2. In an existing Render account, select **New → Blueprint** and choose the repository.
 3. Review `render.yaml`. It declares one Docker web service on the **free** plan.
@@ -37,4 +43,4 @@ Use `DEBUG=false` in the host's environment. The container runs as a non-root us
 - The reviewer can open the GitHub repository and deployed app without your login.
 - Record and open the actual Loom share link before submission.
 
-Deployment files are preparation, not evidence of a successful deployment. Confirm the final URL before submitting it.
+Confirm the hosted app and provider behavior again before submitting it.
