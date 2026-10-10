@@ -1,0 +1,40 @@
+# Hosting RouteCast
+
+The frontend and Django API run as one service. The repository includes a multi-stage Dockerfile and a Render blueprint. No paid database, API key, storage volume or separate frontend host is required.
+
+## Render free web service
+
+1. Push the repository to GitHub.
+2. In an existing Render account, select **New → Blueprint** and choose the repository.
+3. Review `render.yaml`. It declares one Docker web service on the **free** plan.
+4. Deploy and wait for the service to become live. Render generates `SECRET_KEY`; `ALLOWED_HOSTS` accepts the assigned `onrender.com` domain.
+5. Open the resulting HTTPS URL and verify `/api/health/`, the sample trip, and a live trip. Use that actual URL in the assessment form.
+
+Render's free service can sleep after inactivity and take time to wake. Open the application before recording the walkthrough. The free public routing/weather endpoints also have limits; the labeled sample trip provides a reproducible demonstration without pretending cached synthetic weather is live.
+
+For a custom domain, update `ALLOWED_HOSTS` to include it. No application secret belongs in the frontend or Git repository.
+
+Official instructions: [Django on Render](https://render.com/docs/deploy-django), [Docker services](https://render.com/docs/docker), [free service limits](https://render.com/docs/free).
+
+## Existing Docker host
+
+Build the image, set a random `SECRET_KEY` and the exact host name, and run it behind the host's HTTPS reverse proxy:
+
+```sh
+docker build -t routecast .
+docker run --env-file .env -e PORT=8000 -p 127.0.0.1:8001:8000 routecast
+```
+
+Use `DEBUG=false` in the host's environment. The container runs as a non-root user. It has no persistent storage requirements.
+
+## Release checks
+
+- `/api/health/` returns `{"status":"ok"}`.
+- The main page and bundled CSS/JavaScript load without console errors.
+- The sample trip displays three distinct routes and an explained recommendation.
+- A live trip identifies its data as live, or gives an actionable provider error.
+- Every slider position from +0 through +48 changes only the corridor snapshot.
+- The reviewer can open the GitHub repository and deployed app without your login.
+- Record and open the actual Loom share link before submission.
+
+Deployment files are preparation, not evidence of a successful deployment. Confirm the final URL before submitting it.
