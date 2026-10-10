@@ -8,7 +8,7 @@ Aim for about 7 minutes. Record the application and a few focused code views in 
 - Close unrelated tabs and hide notifications or personal information.
 - Open the GitHub repository, `backend/routing/risk.py`, `backend/routing/planning.py`, and the passing test output in nearby tabs.
 - Use a departure time about one hour in the future, 35,000 lb and 25-mile spacing.
-- Load **Explore sample trip** once. It demonstrates three recorded road routes with synthetic weather and is visibly labeled. Rehearse one live plan as well; public APIs can occasionally be unavailable.
+- The prefilled trip starts in **Sample trip** mode. Select **Explore sample routes** once. It demonstrates three recorded road routes with synthetic weather and is visibly labeled. Rehearse one **Live weather** plan as well; public APIs can occasionally be unavailable.
 - Test the Loom share link in a signed-out window after recording. Check that the video plays and is 5–10 minutes long.
 
 ## 0:00–0:40 — Introduce the problem
@@ -27,7 +27,7 @@ Point to the origin, destination, departure, load and spacing controls. Search f
 
 Live planning asks the routing provider for alternatives. For a repeatable demonstration, I'll use the sample trip. Its road geometry comes from OSRM, but the weather is synthetic and labeled that way. This lets me show the risk behavior without depending on today's weather.”
 
-Click **Explore sample trip**. Let the map settle.
+Click **Explore sample routes**. Let the map settle.
 
 ## 1:30–2:40 — Compare routes and inspect a checkpoint
 

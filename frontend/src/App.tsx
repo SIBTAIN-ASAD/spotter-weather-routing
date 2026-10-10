@@ -60,6 +60,7 @@ export default function App() {
   const [departure, setDeparture] = useState(nextDeparture);
   const [load, setLoad] = useState("35000");
   const [spacing, setSpacing] = useState(25);
+  const [forecastMode, setForecastMode] = useState<"demo" | "live">("demo");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null);
@@ -267,7 +268,7 @@ export default function App() {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void planTrip(false);
+                  void planTrip(forecastMode === "demo");
                 }}
               >
                 <div className="places">
@@ -275,7 +276,10 @@ export default function App() {
                     label="Origin"
                     id="origin"
                     value={origin}
-                    onChange={setOrigin}
+                    onChange={(place) => {
+                      setOrigin(place);
+                      setForecastMode("live");
+                    }}
                     disabled={!!loading}
                   />
                   <button
@@ -286,6 +290,7 @@ export default function App() {
                     onClick={() => {
                       setOrigin(destination);
                       setDestination(origin);
+                      setForecastMode("live");
                     }}
                   >
                     <ArrowDownUp size={14} />
@@ -294,7 +299,10 @@ export default function App() {
                     label="Destination"
                     id="destination"
                     value={destination}
-                    onChange={setDestination}
+                    onChange={(place) => {
+                      setDestination(place);
+                      setForecastMode("live");
+                    }}
                     disabled={!!loading}
                   />
                 </div>
@@ -356,35 +364,70 @@ export default function App() {
                     ))}
                   </div>
                 </fieldset>
+                <fieldset className="forecast-mode" disabled={!!loading}>
+                  <legend>Forecast source</legend>
+                  <div className="segmented">
+                    <label className={forecastMode === "demo" ? "checked" : ""}>
+                      <input
+                        type="radio"
+                        name="forecast-mode"
+                        checked={forecastMode === "demo"}
+                        onChange={() => {
+                          setForecastMode("demo");
+                          setOrigin(INITIAL_ORIGIN);
+                          setDestination(INITIAL_DESTINATION);
+                        }}
+                      />
+                      <span>Sample trip</span>
+                    </label>
+                    <label className={forecastMode === "live" ? "checked" : ""}>
+                      <input
+                        type="radio"
+                        name="forecast-mode"
+                        checked={forecastMode === "live"}
+                        onChange={() => setForecastMode("live")}
+                      />
+                      <span>Live weather</span>
+                    </label>
+                  </div>
+                </fieldset>
                 <button
                   className="primary-button"
                   type="submit"
                   disabled={!!loading}
                 >
-                  {loading === "live" ? (
+                  {loading ? (
                     <>
                       <LoaderCircle size={17} className="spin" /> Checking the
                       road ahead…
                     </>
                   ) : (
                     <>
-                      Compare routes <ArrowRight size={17} />
+                      {forecastMode === "demo"
+                        ? "Explore sample routes"
+                        : "Compare live routes"}{" "}
+                      <ArrowRight size={17} />
                     </>
                   )}
                 </button>
                 <p className="provider-note">
-                  Live routes & forecasts. No sign-in needed.
+                  {forecastMode === "demo"
+                    ? "Recorded routes · synthetic weather · no sign-in"
+                    : "Live routes & forecasts. Provider availability may vary."}
                 </p>
               </form>
               <div className="sample-section">
                 <FlaskConical size={18} />
                 <div>
                   <strong>Take a quick look around</strong>
-                  <p>Try a prepared Chicago–Detroit trip.</p>
+                  <p>Prepared Chicago–Detroit routes and weather.</p>
                   <button
                     type="button"
                     disabled={!!loading}
-                    onClick={() => void planTrip(true)}
+                    onClick={() => {
+                      setForecastMode("demo");
+                      void planTrip(true);
+                    }}
                   >
                     {loading === "demo" ? (
                       <>

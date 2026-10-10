@@ -24,7 +24,7 @@ make api
 make web
 ```
 
-Open [localhost:5174](http://localhost:5174). No API keys or database are required. Live planning uses public services, so availability and usage limits apply. The **sample trip** is explicitly labeled and works without those providers; it uses recorded road geometry with synthetic weather to make the risk rules easy to inspect.
+Open [localhost:5174](http://localhost:5174). No API keys or database are required. The prefilled Chicago–Detroit trip selects **Sample trip** by default, so **Explore sample routes** opens a complete, labeled route comparison without relying on external forecast availability. Select **Live weather** to request a current forecast; public provider availability and usage limits apply. The sample uses recorded road geometry with synthetic weather to make the risk rules easy to inspect.
 
 For the production build, including the same-origin API:
 
