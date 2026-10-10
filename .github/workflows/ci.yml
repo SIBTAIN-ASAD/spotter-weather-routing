@@ -1,0 +1,40 @@
+name: Verify RouteCast
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r requirements.txt
+      - run: python backend/manage.py test routing.tests
+      - run: npm ci
+        working-directory: frontend
+      - run: npm test
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - run: python backend/manage.py collectstatic --noinput
+      - run: python backend/manage.py check
+      - name: Check the production image
+        run: |
+          docker build -t routecast:ci .
+          docker run -d --name routecast -p 8000:8000 -e ALLOWED_HOSTS=localhost,127.0.0.1 routecast:ci
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/api/health/; then break; fi
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:8000/api/health/
+          curl --fail http://127.0.0.1:8000/ | grep -q 'RouteCast'

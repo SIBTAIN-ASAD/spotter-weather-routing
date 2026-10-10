@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-local-container-no-sessions}
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DEBUG: "false"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

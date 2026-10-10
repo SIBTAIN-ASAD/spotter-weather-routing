@@ -1,0 +1,11 @@
+.git
+.env*
+.venv
+**/node_modules
+frontend/dist
+**/__pycache__
+**/staticfiles
+**/*.sqlite3
+tmp
+output
+.DS_Store

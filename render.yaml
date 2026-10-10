@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: routecast-weather-routing
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health/
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
