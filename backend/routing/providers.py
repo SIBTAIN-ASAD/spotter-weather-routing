@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 import math
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ from django.core.cache import cache
 from .errors import ProviderError
 from .risk import valid_measurement
 from .validation import number
+
+logger = logging.getLogger(__name__)
 
 
 def request_json(url, params, provider):
@@ -29,6 +32,7 @@ def request_json(url, params, provider):
         response.raise_for_status()
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
+        logger.warning("%s request failed: %s", provider, exc)
         raise ProviderError(
             f"{provider} is unavailable or timed out. Please try again, or choose the labeled demo."
         ) from exc
