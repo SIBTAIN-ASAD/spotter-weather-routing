@@ -290,7 +290,7 @@ h1 {
 }
 .search-input:focus-within {
   border-color: #368b8d;
-  box-shadow: 0 0 0 3px #368b8d14;
+  border-width: 2px;
 }
 .search-input input {
   border: 0;
@@ -428,7 +428,10 @@ h1 {
 .form-field > input:focus,
 .input-with-unit:focus-within {
   border-color: #368b8d;
-  box-shadow: 0 0 0 3px #368b8d14;
+  border-width: 2px;
+}
+.form-field > input:focus-visible {
+  outline: none;
 }
 .timezone {
   margin-top: -3px;
@@ -481,7 +484,6 @@ h1 {
 }
 .forecast-mode .segmented {
   background: #eaf3f7;
-  border-color: #dcebf0;
   height: 39px;
 }
 .forecast-mode .segmented label {
@@ -491,7 +493,7 @@ h1 {
   display: flex;
   background: #f3f6f7;
   padding: 3px;
-  border: 1px solid #e9edef;
+  border: 0;
   border-radius: 7px;
   height: 37px;
 }
@@ -528,7 +530,6 @@ h1 {
   background: white;
   color: var(--teal);
   font-weight: 650;
-  box-shadow: 0 1px 3px #25424e12;
 }
 .primary-button {
   width: 100%;
@@ -1179,7 +1180,6 @@ h1 {
 }
 .route-card.is-selected {
   border-color: #4e9390;
-  box-shadow: 0 0 0 1px #4e93904d;
   background: #f9fcfb;
 }
 .route-card-top {
@@ -2389,9 +2389,7 @@ body {
 .route-card.is-selected {
   border-color: #168aa3;
   background: #f1fafd;
-  box-shadow:
-    0 0 0 2px #168aa326,
-    0 9px 22px #1e516a10;
+  box-shadow: 0 9px 22px #1e516a10;
 }
 .selected-checkpoint {
   background: #ebf7fa;
@@ -2974,7 +2972,6 @@ body {
   .checkpoint-card.is-selected {
     border-color: #198ba0;
     background: #eff9fb;
-    box-shadow: 0 0 0 2px #198ba023;
   }
   .checkpoint-card-top {
     display: flex;
