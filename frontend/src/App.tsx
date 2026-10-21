@@ -8,6 +8,7 @@ import {
   Compass,
   Cookie,
   FlaskConical,
+  Fuel,
   Info,
   LoaderCircle,
   MapPin,
@@ -241,6 +242,7 @@ export default function App() {
           <a href="#planner" className="nav-active">
             Trip planner
           </a>
+          <a href="/fuel/">Fuel planner</a>
           <button type="button" onClick={() => setShowRules(true)}>
             How risk works <ArrowUpRight size={13} />
           </button>
@@ -889,6 +891,10 @@ export default function App() {
             <span>Details</span>
           </span>
         )}
+        <a href="/fuel/">
+          <Fuel size={20} />
+          <span>Fuel</span>
+        </a>
       </nav>
 
       <div className="toast-stack" aria-live="polite" aria-atomic="false">

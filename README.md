@@ -1,6 +1,22 @@
 # RouteCast
 
-A weather-aware route planner built with React, TypeScript and Django. Enter a trip, departure time and load weight to compare road routes against the weather the truck is expected to encounter along the way.
+A routing assessment project built with React, TypeScript and Django. It includes the original weather-aware planner and a separate **fuel-aware Django API** for the Backend Django Engineer exercise shared later. Open [the fuel planner](https://routecast-weather-routing.onrender.com/fuel/) on the hosted demo to try the new endpoint visually, or call the API directly from Postman.
+
+## Fuel-aware backend assessment
+
+`POST /api/fuel/plan/` accepts two US cities and returns one road route as GeoJSON, price-aware fuel stops, and total fuel bought during the drive. The calculation assumes a 500-mile maximum range and 10 mpg. It makes **one OSRM routing call** per uncached trip; US city lookup and station matching are local. The current stable Django version is pinned in `requirements.txt`.
+
+```sh
+curl -sS http://localhost:8001/api/fuel/plan/ \
+  -H 'Content-Type: application/json' \
+  -d '{"origin":"Chicago, IL","destination":"Atlanta, GA"}'
+```
+
+The default is a full 50-gallon starting tank. `total_fuel_spend_usd` counts **purchases during the route**; the unknown purchase cost of fuel already in the tank is excluded. A short route can therefore cost $0 in new purchases. `estimated_trip_fuel_cost_usd` also values the starting fuel consumed using a nearby listed price (or the US median if none is nearby), clearly labeled as an estimate. Set `starting_fuel_gallons` from 0–50 to model another initial state. The API reports both gallons consumed and gallons purchased so this accounting remains visible.
+
+The supplied price CSV has city/state and addresses, but no station coordinates. We use [GeoNames](https://www.geonames.org/) US postal-code place coordinates (CC BY 4.0) to estimate a city-level position for each US station, project nearby cities onto the road, and compare their prices. A pin is **not** a verified truckstop entrance; a 12-mile straight-line city-to-route limit is a candidate filter, not a measured driving detour. Canadian rows and unmatched cities are excluded. The optimizer does not include detour fuel, road restrictions, or live prices. A request fails clearly if the listed stops cannot bridge the range.
+
+See [fuel API contract](docs/FUEL_API.md), [Postman collection](docs/Spotter-Fuel.postman_collection.json), and [under-five-minute walkthrough](docs/FUEL_WALKTHROUGH.md). The walkthrough must be recorded by the applicant before submission.
 
 The useful distinction is **weather when the truck gets there**, rather than weather everywhere at departure. The route comparison uses checkpoint arrival times; the map's forecast slider lets you separately inspect how the surrounding corridor changes over the following 48 hours.
 

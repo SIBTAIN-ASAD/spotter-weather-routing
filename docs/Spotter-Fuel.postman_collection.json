@@ -1,0 +1,35 @@
+{
+  "info": {
+    "name": "Spotter fuel routing assessment",
+    "description": "Django fuel-aware routing API demo. Change baseUrl to the hosted service when deployed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Search US places",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/fuel/places/?q=Chicago"
+      }
+    },
+    {
+      "name": "Plan Chicago to Atlanta",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"origin\":\"Chicago, IL\",\"destination\":\"Atlanta, GA\",\"starting_fuel_gallons\":50}"},
+        "url": "{{baseUrl}}/api/fuel/plan/"
+      }
+    },
+    {
+      "name": "Invalid city validation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"origin\":\"Toronto, ON\",\"destination\":\"Atlanta, GA\"}"},
+        "url": "{{baseUrl}}/api/fuel/plan/"
+      }
+    }
+  ],
+  "variable": [{"key": "baseUrl", "value": "http://localhost:8001"}]
+}
