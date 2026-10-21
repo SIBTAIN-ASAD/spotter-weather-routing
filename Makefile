@@ -12,7 +12,7 @@ web:
 	npm --prefix frontend run dev
 
 test:
-	.venv/bin/python backend/manage.py test routing.tests
+	.venv/bin/python backend/manage.py test routing.tests fuel.tests
 	npm --prefix frontend test
 	npm --prefix frontend run typecheck
 

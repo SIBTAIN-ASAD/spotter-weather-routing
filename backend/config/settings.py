@@ -16,7 +16,7 @@ ALLOWED_HOSTS = [
 ]
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
-INSTALLED_APPS = ["django.contrib.staticfiles", "routing"]
+INSTALLED_APPS = ["django.contrib.staticfiles", "routing", "fuel"]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
